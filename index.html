@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antes y Después</title>
+  <style>
+.img-comp-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 16 / 9; /* ✅ Garantiza altura */
+  margin: auto;
+  overflow: hidden;
+  background: #000; /* fondo de respaldo */
+}
+
+.img-comp-base,
+.img-comp-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-comp-base {
+  z-index: 1;
+}
+
+.img-comp-overlay {
+  z-index: 2;
+  clip-path: inset(0 50% 0 0); /* Mitad visible */
+  transition: clip-path 0.1s;
+}
+
+.img-comp-slider {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.5); /* flechas con transparencia */
+  border-radius: 6px;
+  cursor: ew-resize;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Flechas triangulares */
+.img-comp-slider::before,
+.img-comp-slider::after {
+  content: "";
+  border: solid transparent;
+  width: 0;
+  height: 0;
+  border-width: 6px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.img-comp-slider::before {
+  border-right-color: rgba(255, 255, 255, 0.7);
+  left: 8px;
+}
+
+.img-comp-slider::after {
+  border-left-color: rgba(255, 255, 255, 0.7);
+  right: 8px;
+}
+
+
+.label {
+  position: absolute;
+  top: 10px;
+  padding: 5px 10px;
+  font-family: sans-serif;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  z-index: 4;
+  border-radius: 4px;
+}
+
+.label-before {
+  left: 10px;
+}
+
+.label-after {
+  right: 10px;
+}
+  </style>
+</head>
+<body>
+<div class="img-comp-container">
+  <img class="img-comp-base" src="https://imgur.com/dcfo1dD" alt="Antes">
+  <img class="img-comp-overlay" id="img-comp-overlay" src="https://imgur.com/9HKztQh" alt="Después">
+  <div class="img-comp-slider" id="img-comp-slider"></div>
+</div>
+<script>
+    window.onload = function () {
+      const overlay = document.getElementById("img-comp-overlay");
+      const slider = document.getElementById("img-comp-slider");
+      const container = overlay.parentElement;
+
+      let clicked = false;
+      let containerRect = container.getBoundingClientRect();
+
+      let initialX = container.offsetWidth / 2;
+      setClip(initialX);
+
+      const getCursorX = (e) => {
+        if (e.touches) e = e.touches[0];
+        return e.pageX - containerRect.left;
+      };
+
+      function setClip(x) {
+        if (x < 0) x = 0;
+        if (x > container.offsetWidth) x = container.offsetWidth;
+        const rightInset = container.offsetWidth - x;
+        overlay.style.clipPath = `inset(0 ${rightInset}px 0 0)`;
+        slider.style.left = (x - slider.offsetWidth / 2) + "px";
+      }
+
+      const startSlide = (e) => {
+        e.preventDefault();
+        clicked = true;
+        containerRect = container.getBoundingClientRect();
+      };
+
+      const endSlide = () => clicked = false;
+
+      const moveSlide = (e) => {
+        if (!clicked) return;
+        const x = getCursorX(e);
+        setClip(x);
+      };
+
+      slider.addEventListener("mousedown", startSlide);
+      window.addEventListener("mouseup", endSlide);
+      window.addEventListener("mousemove", moveSlide);
+
+      slider.addEventListener("touchstart", startSlide);
+      window.addEventListener("touchend", endSlide);
+      window.addEventListener("touchmove", moveSlide);
+    };
+  </script>
+</body>
+</html>
